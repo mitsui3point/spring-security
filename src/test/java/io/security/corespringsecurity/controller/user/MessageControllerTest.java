@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -18,6 +20,7 @@ import java.util.Arrays;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = MessageController.class)
@@ -39,14 +42,25 @@ class MessageControllerTest {
 
     @Test
     @DisplayName("권한없이 /messages 호출시 /login 으로 redirect 한다.")
-    void messages() throws Exception {
+    @WithAnonymousUser
+    void messagesAccessFailTest() throws Exception {
         //when
-        mvc.perform(formLogin(MESSAGES_URL)
-                        .user("")
-                        .password("")
-                )
+        mvc.perform(get(MESSAGES_URL))
+                .andDo(print())
                 //then
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost/login"));
+    }
+
+    @Test
+    @DisplayName("manager user /messages 호출시 정상접근한다.")
+    @WithMockUser(username = "manager", password = "1111", roles = "MANAGER")
+    void messagesAccessTest() throws Exception {
+        //when
+        mvc.perform(get(MESSAGES_URL))
+                .andDo(print())
+                //then
+                .andExpect(status().isOk())
+                .andExpect(view().name("user/messages"));
     }
 }

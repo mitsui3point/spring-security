@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = UserController.class)
@@ -46,14 +47,23 @@ class UserControllerTest {
 
     @Test
     @DisplayName("권한없이 /mypage 호출시 /login 으로 redirect 한다.")
-    void myPageFailTest() throws Exception {
+    void mypageAccessFailTest() throws Exception {
         //when
-        mvc.perform(formLogin(MYPAGE_URL)
-                        .user("")
-                        .password("")
-                )
+        mvc.perform(get(MYPAGE_URL))
                 //then
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost/login"));
+    }
+
+    @Test
+    @DisplayName("user user /mypage 호출시 정상접근한다.")
+    @WithMockUser(username = "user", password = "1111", roles = "USER")
+    void mypageAccessTest() throws Exception {
+        //when
+        mvc.perform(get(MYPAGE_URL))
+                .andDo(print())
+                //then
+                .andExpect(status().isOk())
+                .andExpect(view().name("user/mypage"));
     }
 }
