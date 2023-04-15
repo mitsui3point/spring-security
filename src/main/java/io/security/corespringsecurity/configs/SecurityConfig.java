@@ -1,13 +1,21 @@
 package io.security.corespringsecurity.configs;
 
+import org.springframework.boot.autoconfigure.security.StaticResourceLocation;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.boot.autoconfigure.security.servlet.StaticResourceRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import static io.security.corespringsecurity.constants.RoleConstant.*;
 import static io.security.corespringsecurity.constants.UrlConstant.*;
@@ -52,6 +60,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    /**
+     * web static resources 들은 security filter 를 거치지 않고 통과가 된다.
+     * 목록
+     *      {@link StaticResourceRequest#atCommonLocations()} => {@link StaticResourceLocation}
+     * HttpSecurity.antMatchers() vs WebSecurity.ignoring() 차이
+     *      antMathcers() : {@link FilterSecurityInterceptor#invoke(FilterInvocation)} => InterceptorStatusToken token = super.beforeInvocation(fi); 로직을 수행함
+     *      ignoring(): {@link FilterSecurityInterceptor#invoke(FilterInvocation)} => InterceptorStatusToken token = super.beforeInvocation(fi); 로직을 수행하지 않음
+     * 
+     * @param web
+     * @throws Exception
+     */
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring()
+                .requestMatchers(PathRequest
+                        .toStaticResources()
+                        .atCommonLocations());
     }
 
     /**
