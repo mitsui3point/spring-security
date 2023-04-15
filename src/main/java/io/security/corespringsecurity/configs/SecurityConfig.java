@@ -1,6 +1,5 @@
 package io.security.corespringsecurity.configs;
 
-import antlr.BaseAST;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -10,21 +9,13 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import static io.security.corespringsecurity.constants.RoleConstant.*;
+import static io.security.corespringsecurity.constants.UrlConstant.*;
+import static io.security.corespringsecurity.constants.UserConstant.*;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-    public static final String USER_ID = "user";
-    public static final String PASSWORD = "1111";
-    public static final String USER_ROLE = "USER";
-    public static final String ADMIN_ROLE = "ADMIN";
-    public static final String ADMIN_ID = "admin";
-    public static final String MANAGER_ID = "manager";
-    public static final String MANAGER_ROLE = "MANAGER";
-    public static final String MYPAGE_URL = "/mypage";
-    public static final String MESSAGES_URL = "/messages";
-    public static final String CONFIG_URL = "/config";
-    public static final String ROOT_URL = "/";
 
     /**
      * 현재 이 웹 서버가 제공하는 http 요청을 접근할 수 있는 user 목록
