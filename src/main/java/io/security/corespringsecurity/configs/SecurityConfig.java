@@ -25,6 +25,7 @@ import static io.security.corespringsecurity.constants.UserConstant.*;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+
     /**
      * 현재 이 웹 서버가 제공하는 http 요청을 접근할 수 있는 user 목록
      *
@@ -55,6 +56,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 평문인 password 를 encode 할 수 있는 method 를 제공하는 spring bean 이 등록된다.
+     *
+     * {@link PasswordEncoderFactories#createDelegatingPasswordEncoder()}
+     *      : 여러개의 {@link PasswordEncoder} 유형을 선언한 뒤, 상황에 맞게 선택해서 사용할 수 있도록 지원하는 Encoder 이다.
+     *
+     * 암호화 포맷
+     *      : {id}encodedPassword
+     *      : bcrypt, noop, pbkdf2, scrypt, sha256 (기본 포맷은 Bcrypt : {bcrypt}$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG)
+     *
+     * {@link PasswordEncoder}
+     *      : encode(password); 패스워드 암호화
+     *      : matches(rawPassword, encodedPassword); 패스워드 비교
+     *
      * @return
      */
     @Bean
@@ -92,7 +105,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
 
-                .antMatchers(ROOT_URL).permitAll()
+                .antMatchers(ROOT_URL, USERS_URL).permitAll()
                 .antMatchers(MYPAGE_URL).hasRole(USER_ROLE)
                 .antMatchers(MESSAGES_URL).hasRole(MANAGER_ROLE)
                 .antMatchers(CONFIG_URL).hasRole(ADMIN_ROLE)

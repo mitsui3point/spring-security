@@ -5,4 +5,5 @@ public class UrlConstant {
     public static final String MESSAGES_URL = "/messages";
     public static final String CONFIG_URL = "/config";
     public static final String ROOT_URL = "/";
+    public static final String USERS_URL = "/users";
 }
