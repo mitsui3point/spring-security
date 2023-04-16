@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
@@ -28,5 +29,14 @@ public class UserController {
 	@GetMapping("/users")
 	public String createUser() {
 		return "user/login/register";
+	}
+
+	@PostMapping("/users")
+	public String createUser(AccountDto accountDto) {
+		Account account = new ModelMapper().map(accountDto, Account.class);
+		account.setPassword(passwordEncoder.encode(account.getPassword()));
+
+		userService.createUser(account);
+		return "redirect:/";
 	}
 }

@@ -1,9 +1,6 @@
 package io.security.corespringsecurity.domain;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,6 +8,8 @@ import javax.persistence.Id;
 
 @Entity
 @Getter
+@Setter
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Account {
     @Id
@@ -31,9 +30,5 @@ public class Account {
         this.email = email;
         this.age = age;
         this.role = role;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }
