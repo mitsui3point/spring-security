@@ -1,5 +1,9 @@
-package io.security.corespringsecurity.configs;
+package io.security.corespringsecurity.security.configs;
 
+import io.security.corespringsecurity.domain.Account;
+import io.security.corespringsecurity.repository.UserRepository;
+import io.security.corespringsecurity.security.service.AccountContext;
+import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,12 +12,24 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -27,6 +43,12 @@ public class SecurityConfigTest {
 
     @Autowired
     WebApplicationContext context;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @MockBean
+    CustomUsersDetailsService customUsersDetailsService;
 
     MockMvc mvc;
 
@@ -45,15 +67,25 @@ public class SecurityConfigTest {
         assertThat(securityConfig).isInstanceOf(WebSecurityConfigurerAdapter.class);
     }
 
-    @ParameterizedTest
+    @Test
     @DisplayName("등록된 유저들의 /login 페이지 로그인 성공한다.")
-    @CsvSource(value = {
-            "user:1111",
-            "manager:1111",
-            "admin:1111"},
-            delimiterString = ":")
-    void loginTest(String user, String password) throws Exception {
-        performAndExpectLoginSuccess(user, password);
+    void loginTest() throws Exception {
+        //given
+        List<GrantedAuthority> roles = new ArrayList<>();
+        roles.add(new SimpleGrantedAuthority("ROLE_USER"));
+        Account account = Account.builder().username("user1").password(passwordEncoder.encode("1111")).age("11").role("ADMIN").email("aa@aa.com").build();
+        given(customUsersDetailsService.loadUserByUsername(any())).willReturn(new AccountContext(account, roles));
+        //when
+        mvc.perform(formLogin()
+                        .loginProcessingUrl("/login")
+                        .user("user1")
+                        .password("1111"))
+                .andDo(print())
+                //then
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"))
+                .andExpect(authenticated().withUsername("user1"));
+        verify(customUsersDetailsService, times(1)).loadUserByUsername(any());
     }
 
     @ParameterizedTest
@@ -71,16 +103,4 @@ public class SecurityConfigTest {
                 .andExpect(status().isOk());
     }
 
-    private void performAndExpectLoginSuccess(String user, String password) throws Exception {
-        //when
-        mvc.perform(formLogin()
-                        .loginProcessingUrl("/login")
-                        .user(user)
-                        .password(password))
-                .andDo(print())
-                //then
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"))
-                .andExpect(authenticated().withUsername(user));
-    }
 }

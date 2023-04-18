@@ -19,7 +19,7 @@ public class UserRepositoryTest {
     UserRepository repository;
 
     @Test
-    @DisplayName("회원테이블에 데이터를 저장후, 조회에 성공한다.")
+    @DisplayName("회원테이블에 데이터를 저장후, id 로 조회에 성공한다.")
     void saveAndFindById() {
         //given
         Account account = Account.builder().username("user1").build();
@@ -37,8 +37,20 @@ public class UserRepositoryTest {
                 .isEqualTo("user1");
     }
 
-//    @AfterEach
-//    void tearDown() {
-//        repository.deleteAll();
-//    }
+    @Test
+    @DisplayName("회원테이블에 데이터를 저장후, username 으로 조회에 성공한다.")
+    void saveAndFindByUsername() {
+        //given
+        Account account = Account.builder().username("user1").build();
+
+        //when
+        repository.save(account);
+        Account user1 = repository.findByUsername(account.getUsername());
+
+        //then
+        assertThat(user1)
+                .extracting("username")
+                .isEqualTo("user1");
+    }
+
 }

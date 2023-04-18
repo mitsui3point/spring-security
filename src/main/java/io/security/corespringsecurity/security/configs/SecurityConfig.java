@@ -1,5 +1,6 @@
-package io.security.corespringsecurity.configs;
+package io.security.corespringsecurity.security.configs;
 
+import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import org.springframework.boot.autoconfigure.security.StaticResourceLocation;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.autoconfigure.security.servlet.StaticResourceRequest;
@@ -10,48 +11,32 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import static io.security.corespringsecurity.constants.RoleConstant.*;
 import static io.security.corespringsecurity.constants.UrlConstant.*;
-import static io.security.corespringsecurity.constants.UserConstant.*;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    private final UserDetailsService userDetailsService;
 
+    public SecurityConfig(CustomUsersDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
     /**
      * 현재 이 웹 서버가 제공하는 http 요청을 접근할 수 있는 user 목록
-     *
      * @param auth the {@link AuthenticationManagerBuilder} to use
      * @throws Exception
      */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-
-        //PasswordEncoder 라는 클래스가 있다. password 암호화된 방식으로 저장 및 조회해야 한다.(그래야 오류가 발생하지 않는다.)
-        String password = passwordEncoder().encode(PASSWORD);
-
-        auth.inMemoryAuthentication()
-                .withUser(USER_ID)
-                .password(password)
-                .roles(USER_ROLE);
-
-        auth.inMemoryAuthentication()
-                .withUser(MANAGER_ID)
-                .password(password)
-                .roles(MANAGER_ROLE);
-
-        auth.inMemoryAuthentication()
-                .withUser(ADMIN_ID)
-                .password(password)
-                .roles(ADMIN_ROLE);
+        auth.userDetailsService(userDetailsService);
     }
 
     /**
