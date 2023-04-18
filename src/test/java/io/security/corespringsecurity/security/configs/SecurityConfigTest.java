@@ -1,14 +1,12 @@
 package io.security.corespringsecurity.security.configs;
 
 import io.security.corespringsecurity.domain.Account;
-import io.security.corespringsecurity.repository.UserRepository;
 import io.security.corespringsecurity.security.service.AccountContext;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,9 +20,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
+import static io.security.corespringsecurity.constants.TestDataConstants.getAdmin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -71,20 +69,26 @@ public class SecurityConfigTest {
     @DisplayName("등록된 유저들의 /login 페이지 로그인 성공한다.")
     void loginTest() throws Exception {
         //given
+        Account account = getAdmin(passwordEncoder.encode("1111"));
+
         List<GrantedAuthority> roles = new ArrayList<>();
-        roles.add(new SimpleGrantedAuthority("ROLE_USER"));
-        Account account = Account.builder().username("user1").password(passwordEncoder.encode("1111")).age("11").role("ADMIN").email("aa@aa.com").build();
-        given(customUsersDetailsService.loadUserByUsername(any())).willReturn(new AccountContext(account, roles));
+        roles.add(new SimpleGrantedAuthority(account.getRole()));
+
+        given(customUsersDetailsService.loadUserByUsername(any()))
+                .willReturn(new AccountContext(account, roles));
+
         //when
         mvc.perform(formLogin()
                         .loginProcessingUrl("/login")
-                        .user("user1")
+                        .user("admin")
                         .password("1111"))
                 .andDo(print())
                 //then
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"))
-                .andExpect(authenticated().withUsername("user1"));
+                .andExpect(authenticated().withUsername("admin"));
+
+        //then
         verify(customUsersDetailsService, times(1)).loadUserByUsername(any());
     }
 

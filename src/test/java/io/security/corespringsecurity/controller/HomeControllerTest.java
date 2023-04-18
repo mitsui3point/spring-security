@@ -4,11 +4,9 @@ import io.security.corespringsecurity.security.service.CustomUsersDetailsService
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -21,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = HomeController.class)
 class HomeControllerTest {
+    public static final String HOME_URL = "home";
     @Autowired
     WebApplicationContext context;
 
@@ -40,6 +39,6 @@ class HomeControllerTest {
     void home() throws Exception {
         mvc.perform(get(ROOT_URL))
                 .andExpect(status().isOk())
-                .andExpect(view().name("home"));
+                .andExpect(view().name(HOME_URL));
     }
 }

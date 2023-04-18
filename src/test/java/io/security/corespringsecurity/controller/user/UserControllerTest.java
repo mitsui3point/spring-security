@@ -1,23 +1,27 @@
 package io.security.corespringsecurity.controller.user;
 
+import io.security.corespringsecurity.domain.Account;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import io.security.corespringsecurity.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 
+import static io.security.corespringsecurity.constants.TestDataConstants.REDIRECTED_LOGIN_URL;
+import static io.security.corespringsecurity.constants.TestDataConstants.getAdmin;
 import static io.security.corespringsecurity.constants.UrlConstant.MYPAGE_URL;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -29,8 +33,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = UserController.class)
 class UserControllerTest {
+    public static final String USER_LOGIN_REGISTER_URL = "user/login/register";
+
     @Autowired
     WebApplicationContext context;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @MockBean
     CustomUsersDetailsService customUsersDetailsService;
@@ -40,11 +49,14 @@ class UserControllerTest {
 
     MockMvc mvc;
 
+    Account admin;
+
     @BeforeEach
     void setUp() {
         mvc = MockMvcBuilders.webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
+        admin = getAdmin(passwordEncoder.encode("1111"));
     }
 
     @Test
@@ -54,7 +66,7 @@ class UserControllerTest {
         mvc.perform(get(MYPAGE_URL))
                 //then
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/login"));
+                .andExpect(redirectedUrl(REDIRECTED_LOGIN_URL));
     }
 
     @Test
@@ -71,31 +83,25 @@ class UserControllerTest {
 
     @Test
     @DisplayName("GET /users 호출시 회원가입 페이지로 이동한다.")
-    void createUserTest() throws Exception {
+    void createUserGetTest() throws Exception {
         //when
         mvc.perform(get("/users"))
                 .andDo(print())
                 //then
                 .andExpect(status().isOk())
-                .andExpect(view().name("user/login/register"));
+                .andExpect(view().name(USER_LOGIN_REGISTER_URL));
     }
 
-    @ParameterizedTest
+    @Test
     @DisplayName("POST /users 호출시 회원가입 로직을 호출한다.")
-    @CsvSource(value = {"username,1111,email@email.com,11,USER"}, delimiterString = ",")
-    void createUserTest(
-            String username,
-            String password,
-            String email,
-            String age,
-            String role) throws Exception {
+    void createUserPostTest() throws Exception {
         //given
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("username", username);
-        params.add("password", password);
-        params.add("email", email);
-        params.add("age", age);
-        params.add("role", role);
+        params.add("username", admin.getUsername());
+        params.add("password", admin.getPassword());
+        params.add("email", admin.getEmail());
+        params.add("age", admin.getAge());
+        params.add("role", admin.getRole());
         //when
         mvc.perform(post("/users")
                         .with(csrf())
