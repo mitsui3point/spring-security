@@ -1,16 +1,18 @@
 package io.security.corespringsecurity.constants;
 
 import io.security.corespringsecurity.domain.Account;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class TestDataConstants {
     public static final String REDIRECTED_LOGIN_URL = "http://localhost/login";
 
+    public static final String RAW_PASSWORD = "1111";
     public static final Account NO_INFO_USER = Account
             .builder()
-            .build();
-
-    public static final Account USER1_USER = Account.builder()
-            .username("user1")
             .build();
 
     public static Account getUser(String password) {
@@ -18,7 +20,8 @@ public class TestDataConstants {
                 .username("user")
                 .password(password)
                 .age("11")
-                .role("ROLE_USER")
+                .role("USER")
+//                .role("ROLE_USER")
                 .email("aa@aa.com")
                 .build();
     }
@@ -28,7 +31,7 @@ public class TestDataConstants {
                 .username("manager")
                 .password(password)
                 .age("11")
-                .role("ROLE_USER")
+                .role("MANAGER")
                 .email("aa@aa.com")
                 .build();
     }
@@ -41,5 +44,11 @@ public class TestDataConstants {
                 .role("ADMIN")
                 .email("aa@aa.com")
                 .build();
+    }
+
+    public static Set<GrantedAuthority> getRoles(Account account) {
+        Set<GrantedAuthority> roles = new HashSet<>();
+        roles.add(new SimpleGrantedAuthority(account.getRole()));
+        return roles;
     }
 }

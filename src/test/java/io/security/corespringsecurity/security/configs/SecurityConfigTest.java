@@ -1,29 +1,31 @@
 package io.security.corespringsecurity.security.configs;
 
 import io.security.corespringsecurity.domain.Account;
+import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import io.security.corespringsecurity.security.service.AccountContext;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
-import static io.security.corespringsecurity.constants.TestDataConstants.getAdmin;
-import static org.assertj.core.api.Assertions.assertThat;
+import static io.security.corespringsecurity.constants.TestDataConstants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -36,7 +38,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+//@WebMvcTest()
+//@Import({SecurityConfig.class, CustomAuthenticationProvider.class})
 @SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class SecurityConfigTest {
 
     @Autowired
@@ -58,36 +63,29 @@ public class SecurityConfigTest {
     }
 
     @Test
-    void registeredConfigBean() {
-        SecurityConfig securityConfig = context.getBean(SecurityConfig.class);
-        //then
-        assertThat(securityConfig).isNotNull();
-        assertThat(securityConfig).isInstanceOf(WebSecurityConfigurerAdapter.class);
-    }
-
-    @Test
     @DisplayName("등록된 유저들의 /login 페이지 로그인 성공한다.")
     void loginTest() throws Exception {
         //given
-        Account account = getAdmin(passwordEncoder.encode("1111"));
-
-        List<GrantedAuthority> roles = new ArrayList<>();
-        roles.add(new SimpleGrantedAuthority(account.getRole()));
+        Account account = getAdmin(passwordEncoder.encode(RAW_PASSWORD));
+        Set<GrantedAuthority> roles = getRoles(account);
+        AccountContext accountContext = new AccountContext(account, roles);
 
         given(customUsersDetailsService.loadUserByUsername(any()))
-                .willReturn(new AccountContext(account, roles));
+                .willReturn(accountContext);
 
         //when
         mvc.perform(formLogin()
                         .loginProcessingUrl("/login")
                         .user("admin")
-                        .password("1111"))
+                        .password(RAW_PASSWORD))
                 .andDo(print())
                 //then
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"))
-                .andExpect(authenticated().withUsername("admin"));
-
+                .andExpect(authenticated()
+                        .withUsername("admin")
+                        .withAuthenticationPrincipal(accountContext)
+                );
         //then
         verify(customUsersDetailsService, times(1)).loadUserByUsername(any());
     }
@@ -106,5 +104,4 @@ public class SecurityConfigTest {
                 //then
                 .andExpect(status().isOk());
     }
-
 }
