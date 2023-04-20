@@ -1,5 +1,7 @@
 package io.security.corespringsecurity.security.configs;
 
+import io.security.corespringsecurity.constants.TestDataConstants;
+import io.security.corespringsecurity.constants.UrlConstant;
 import io.security.corespringsecurity.domain.Account;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import io.security.corespringsecurity.security.service.AccountContext;
@@ -26,17 +28,18 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.Set;
 
 import static io.security.corespringsecurity.constants.TestDataConstants.*;
+import static io.security.corespringsecurity.constants.UrlConstant.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.http.RequestEntity.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 //@WebMvcTest()
 //@Import({SecurityConfig.class, CustomAuthenticationProvider.class})
@@ -75,13 +78,13 @@ public class SecurityConfigTest {
 
         //when
         mvc.perform(formLogin()
-                        .loginProcessingUrl("/login")
+                        .loginProcessingUrl(LOGIN_PROC_URL)
                         .user("admin")
                         .password(RAW_PASSWORD))
                 .andDo(print())
                 //then
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"))
+                .andExpect(redirectedUrl(ROOT_URL))
                 .andExpect(authenticated()
                         .withUsername("admin")
                         .withAuthenticationPrincipal(accountContext)

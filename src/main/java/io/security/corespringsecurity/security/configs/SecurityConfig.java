@@ -78,7 +78,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
 
-                .antMatchers(ROOT_URL, USERS_URL).permitAll()
+                .antMatchers(ROOT_URL, USERS_URL, "user/login/**").permitAll()
                 .antMatchers(MYPAGE_URL).hasRole(USER_ROLE)
                 .antMatchers(MESSAGES_URL).hasRole(MANAGER_ROLE)
                 .antMatchers(CONFIG_URL).hasRole(ADMIN_ROLE)
@@ -86,8 +86,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest()
                 .authenticated()
 
-                .and()
-                .formLogin();//기본 인증방식; form login
+        .and()
+                .formLogin()//기본 인증방식; form login
+                .loginPage(LOGIN_URL)//login page
+                .loginProcessingUrl(LOGIN_PROC_URL)//login form action
+                .defaultSuccessUrl(ROOT_URL)//성공시 redirect page
+                .permitAll()//로그인 페이지 권한 전체 허용
+        ;
     }
 
     /**
