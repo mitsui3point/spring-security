@@ -31,6 +31,8 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	//두 객체간의 값들을 매핑하는 라이브러리
 	implementation 'org.modelmapper:modelmapper:2.3.0'
+	//타임리프 extra 기능 제공 라이브러리
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 }
