@@ -1,16 +1,17 @@
 package io.security.corespringsecurity.security.provider;
 
+import io.security.corespringsecurity.security.common.FormWebAuthenticationDetails;
+import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.service.AccountContext;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 
 /**
@@ -47,11 +48,17 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
         String password = (String) authentication.getCredentials();
-
         AccountContext accountContext = (AccountContext) customUsersDetailsService.loadUserByUsername(username);
 
+        FormWebAuthenticationDetails details = (FormWebAuthenticationDetails) authentication.getDetails();
+        String secretKey = details.getSecretKey();
+
         if (!passwordEncoder.matches(password, accountContext.getAccount().getPassword())) {
-            throw new BadCredentialsException("BadCredentialsException");
+            throw new BadCredentialsException("invalid password");
+        }
+
+        if (secretKey == null || !"secret".equals(secretKey)) {
+            throw new InsufficientAuthenticationException("InsufficientAuthenticationException");
         }
 
         return new UsernamePasswordAuthenticationToken(

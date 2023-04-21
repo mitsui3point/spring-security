@@ -1,23 +1,21 @@
 package io.security.corespringsecurity.controller.user;
 
 import io.security.corespringsecurity.domain.Account;
+import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import io.security.corespringsecurity.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.MockBeans;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 
 import static io.security.corespringsecurity.constants.TestDataConstants.REDIRECTED_LOGIN_URL;
@@ -32,6 +30,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = UserController.class)
+@MockBeans({
+        @MockBean(CustomUsersDetailsService.class),
+        @MockBean(FormWebAuthenticationDetailsSource.class),
+        @MockBean(UserService.class)})//DI 를 위한 MockBean
 class UserControllerTest {
     public static final String USER_LOGIN_REGISTER_URL = "user/login/register";
 
@@ -40,9 +42,6 @@ class UserControllerTest {
 
     @Autowired
     PasswordEncoder passwordEncoder;
-
-    @MockBean
-    CustomUsersDetailsService customUsersDetailsService;
 
     @MockBean
     UserService service;
@@ -95,18 +94,15 @@ class UserControllerTest {
     @Test
     @DisplayName("POST /users 호출시 회원가입 로직을 호출한다.")
     void createUserPostTest() throws Exception {
-        //given
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("username", admin.getUsername());
-        params.add("password", admin.getPassword());
-        params.add("email", admin.getEmail());
-        params.add("age", admin.getAge());
-        params.add("role", admin.getRole());
         //when
         mvc.perform(post("/users")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                        .params(params))
+                        .param("username", admin.getUsername())
+                        .param("password", admin.getPassword())
+                        .param("email", admin.getEmail())
+                        .param("age", admin.getAge())
+                        .param("role", admin.getRole()))
                 .andDo(print())
                 //then
                 .andExpect(status().is3xxRedirection())

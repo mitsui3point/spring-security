@@ -2,33 +2,53 @@ package io.security.corespringsecurity.service;
 
 import io.security.corespringsecurity.domain.Account;
 import io.security.corespringsecurity.repository.UserRepository;
-import org.assertj.core.api.Assertions;
+import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
+import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.MockBeans;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@SpringBootTest
-@Transactional
+import static io.security.corespringsecurity.constants.TestDataConstants.RAW_PASSWORD;
+import static io.security.corespringsecurity.constants.TestDataConstants.getUser;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+@WebMvcTest
+@ExtendWith(SpringExtension.class)
+@MockBeans({
+        @MockBean(CustomUsersDetailsService.class),
+        @MockBean(FormWebAuthenticationDetailsSource.class)
+})
+@Import(UserServiceImpl.class)
 public class UserServiceTest {
     @Autowired
     UserService service;
 
     @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @MockBean
     UserRepository repository;
 
     @Test
     @DisplayName("회원가입 후 DB 에 저장한다.")
     void createUser() {
         //given
-        Account user1 = Account.builder().username("user1").build();
+        Account user = getUser(passwordEncoder.encode(RAW_PASSWORD));
+        given(repository.save(user)).willReturn(user);
 
         //when
-        service.createUser(user1);
+        service.createUser(user);
 
         //then
-        Account actual = repository.findById(user1.getId()).orElseGet(() -> Account.builder().build());
-        Assertions.assertThat(actual).extracting("username").isEqualTo("user1");
+        verify(repository, times(1)).save(user);
     }
 }

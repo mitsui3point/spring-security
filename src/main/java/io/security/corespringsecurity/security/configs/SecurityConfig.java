@@ -1,5 +1,6 @@
 package io.security.corespringsecurity.security.configs;
 
+import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.autoconfigure.security.servlet.StaticResourceRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -31,6 +33,7 @@ import static io.security.corespringsecurity.constants.UrlConstant.*;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final CustomUsersDetailsService customUsersDetailsService;
+    private final FormWebAuthenticationDetailsSource formWebAuthenticationDetailsSource;
     @Bean
     public AuthenticationProvider authenticationProvider() {
         return new CustomAuthenticationProvider(customUsersDetailsService, passwordEncoder());
@@ -90,6 +93,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()//기본 인증방식; form login
                 .loginPage(LOGIN_URL)//login page
                 .loginProcessingUrl(LOGIN_PROC_URL)//login form action
+                .authenticationDetailsSource(formWebAuthenticationDetailsSource)//WebAuthenticationDetails 소스를 실행하는 실행부
                 .defaultSuccessUrl(ROOT_URL)//성공시 redirect page
                 .permitAll()//로그인 페이지 권한 전체 허용
         ;

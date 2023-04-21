@@ -1,6 +1,6 @@
 package io.security.corespringsecurity.controller.user;
 
-import io.security.corespringsecurity.domain.Account;
+import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.MockBeans;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -16,7 +17,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static io.security.corespringsecurity.constants.TestDataConstants.REDIRECTED_LOGIN_URL;
-import static io.security.corespringsecurity.constants.TestDataConstants.getManager;
 import static io.security.corespringsecurity.constants.UrlConstant.MESSAGES_URL;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -24,6 +24,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = MessageController.class)
+@MockBeans({
+        @MockBean(CustomUsersDetailsService.class),
+        @MockBean(FormWebAuthenticationDetailsSource.class)})//DI 를 위한 MockBean
 class MessageControllerTest {
 
     public static final String USER_MESSAGES_URL = "user/messages";
@@ -32,9 +35,6 @@ class MessageControllerTest {
 
     @Autowired
     PasswordEncoder passwordEncoder;
-
-    @MockBean
-    CustomUsersDetailsService customUsersDetailsService;
 
     MockMvc mvc;
 

@@ -11,6 +11,7 @@ public class TestDataConstants {
     public static final String REDIRECTED_LOGIN_URL = "http://localhost/login";
 
     public static final String RAW_PASSWORD = "1111";
+
     public static final Account NO_INFO_USER = Account
             .builder()
             .build();

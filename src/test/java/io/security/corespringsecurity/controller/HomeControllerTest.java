@@ -1,5 +1,6 @@
 package io.security.corespringsecurity.controller;
 
+import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.MockBeans;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -18,13 +20,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @WebMvcTest(controllers = HomeController.class)
+@MockBeans({
+        @MockBean(CustomUsersDetailsService.class),
+        @MockBean(FormWebAuthenticationDetailsSource.class)})//DI 를 위한 MockBean
 class HomeControllerTest {
-    public static final String HOME_URL = "home";
+    public static final String HOME_VIEW_NAME = "home";
+
     @Autowired
     WebApplicationContext context;
-
-    @MockBean
-    CustomUsersDetailsService customUsersDetailsService;
 
     MockMvc mvc;
     @BeforeEach
@@ -39,6 +42,6 @@ class HomeControllerTest {
     void home() throws Exception {
         mvc.perform(get(ROOT_URL))
                 .andExpect(status().isOk())
-                .andExpect(view().name(HOME_URL));
+                .andExpect(view().name(HOME_VIEW_NAME));
     }
 }
