@@ -1,28 +1,27 @@
 package io.security.corespringsecurity.security.provider;
 
-import io.security.corespringsecurity.controller.user.UserController;
 import io.security.corespringsecurity.domain.Account;
 import io.security.corespringsecurity.security.common.FormWebAuthenticationDetails;
-import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.service.AccountContext;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
+import io.security.corespringsecurity.test.TestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.MockBeans;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Set;
 
@@ -35,24 +34,24 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @WebMvcTest
-@ExtendWith({
-        MockitoExtension.class,
-        SpringExtension.class})
-@MockBeans({
-        @MockBean(UserController.class),
-        @MockBean(FormWebAuthenticationDetailsSource.class)})//DI 를 위한 MockBean
+@Import(TestConfig.class)
 public class CustomAuthenticationProviderTest {
-    @Autowired
-    AuthenticationProvider authenticationProvider;
+    @InjectMocks
+    CustomAuthenticationProvider authenticationProvider;
 
-    @Autowired
-    PasswordEncoder passwordEncoder;
+    @Mock
+    PasswordEncoder mockPasswordEncoder;
 
-    @MockBean
+    @Mock
     CustomUsersDetailsService customUsersDetailsService;
 
     @Mock
     Authentication authentication;
+
+    /* 테스트 데이터 실제 encoder 기능을 구현하기 위해 추가 */
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
 
     Account user;
     Set<GrantedAuthority> roles;
@@ -85,6 +84,7 @@ public class CustomAuthenticationProviderTest {
         given(authentication.getName()).willReturn(user.getUsername());
         given(authentication.getCredentials()).willReturn(RAW_PASSWORD);
         given(authentication.getDetails()).willReturn(new FormWebAuthenticationDetails(request));
+        given(mockPasswordEncoder.matches(any(), any())).willReturn(true);
         given(customUsersDetailsService.loadUserByUsername(any())).willReturn(accountContext);
 
         //when
@@ -103,6 +103,7 @@ public class CustomAuthenticationProviderTest {
         //given
         given(authentication.getName()).willReturn("notFoundUsername");//없는 유저id
         given(authentication.getCredentials()).willReturn(RAW_PASSWORD);
+        given(mockPasswordEncoder.matches(any(), any())).willReturn(false);
         given(customUsersDetailsService.loadUserByUsername(any())).willThrow(new UsernameNotFoundException("UsernameNotFoundException"));//유저 조회 실패
 
         //then
@@ -119,6 +120,7 @@ public class CustomAuthenticationProviderTest {
         given(authentication.getName()).willReturn(user.getUsername());
         given(authentication.getCredentials()).willReturn("notAcceptedPassword");//패스워드 불일치
         given(authentication.getDetails()).willReturn(new FormWebAuthenticationDetails(request));
+        given(mockPasswordEncoder.matches(any(), any())).willReturn(false);
         given(customUsersDetailsService.loadUserByUsername(any())).willReturn(accountContext);
 
         //then
@@ -137,6 +139,7 @@ public class CustomAuthenticationProviderTest {
         given(authentication.getName()).willReturn(user.getUsername());
         given(authentication.getCredentials()).willReturn(RAW_PASSWORD);
         given(authentication.getDetails()).willReturn(new FormWebAuthenticationDetails(request));
+        given(mockPasswordEncoder.matches(any(), any())).willReturn(true);
         given(customUsersDetailsService.loadUserByUsername(any())).willReturn(accountContext);
 
         //then

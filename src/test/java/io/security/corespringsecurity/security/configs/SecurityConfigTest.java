@@ -1,10 +1,9 @@
 package io.security.corespringsecurity.security.configs;
 
 import io.security.corespringsecurity.domain.Account;
-import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.service.AccountContext;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
-import io.security.corespringsecurity.service.UserService;
+import io.security.corespringsecurity.test.TestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.MockBeans;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,8 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest
 @ExtendWith(MockitoExtension.class)
-@MockBeans(@MockBean(UserService.class))
-@Import(FormWebAuthenticationDetailsSource.class)
+@Import(TestConfig.class)
 public class SecurityConfigTest {
 
     @Autowired

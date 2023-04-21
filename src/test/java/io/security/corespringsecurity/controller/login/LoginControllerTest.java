@@ -1,13 +1,11 @@
 package io.security.corespringsecurity.controller.login;
 
-import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
-import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
+import io.security.corespringsecurity.test.TestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.MockBeans;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,9 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(LoginController.class)
-@MockBeans({
-        @MockBean(CustomUsersDetailsService.class),
-        @MockBean(FormWebAuthenticationDetailsSource.class)})//DI 를 위한 MockBean
+@Import(TestConfig.class)
 public class LoginControllerTest {
 
     @Autowired

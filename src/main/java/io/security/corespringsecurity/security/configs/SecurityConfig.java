@@ -1,6 +1,7 @@
 package io.security.corespringsecurity.security.configs;
 
 import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
+import io.security.corespringsecurity.security.handler.CustomAuthenticationSuccessHandler;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -9,20 +10,17 @@ import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.autoconfigure.security.servlet.StaticResourceRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import static io.security.corespringsecurity.constants.RoleConstant.*;
 import static io.security.corespringsecurity.constants.UrlConstant.*;
@@ -32,8 +30,10 @@ import static io.security.corespringsecurity.constants.UrlConstant.*;
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final CustomUsersDetailsService customUsersDetailsService;
-    private final FormWebAuthenticationDetailsSource formWebAuthenticationDetailsSource;
+    private final CustomUsersDetailsService customUsersDetailsService;//DB 에서 유저 정보 조회
+    private final FormWebAuthenticationDetailsSource formWebAuthenticationDetailsSource;//WebAuthenticationDetails (추가 세부 인증; ex. secretKey) 생성
+    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;//인증 성공시 실행되는 Handler
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         return new CustomAuthenticationProvider(customUsersDetailsService, passwordEncoder());
@@ -95,6 +95,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginProcessingUrl(LOGIN_PROC_URL)//login form action
                 .authenticationDetailsSource(formWebAuthenticationDetailsSource)//WebAuthenticationDetails 소스를 실행하는 실행부
                 .defaultSuccessUrl(ROOT_URL)//성공시 redirect page
+                .successHandler(customAuthenticationSuccessHandler)//성공시 실행되는 handler
                 .permitAll()//로그인 페이지 권한 전체 허용
         ;
     }

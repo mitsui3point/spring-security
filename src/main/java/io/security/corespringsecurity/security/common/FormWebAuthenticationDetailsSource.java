@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * {@link org.springframework.security.authentication.AuthenticationDetailsSource}
- * WebAuthenticationDetails 객체를 생성
+ * {@link AuthenticationDetailsSource}
+ * {@link WebAuthenticationDetails} 객체를 생성
  */
 @Component
 public class FormWebAuthenticationDetailsSource implements AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> {

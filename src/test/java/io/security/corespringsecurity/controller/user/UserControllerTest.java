@@ -1,16 +1,15 @@
 package io.security.corespringsecurity.controller.user;
 
 import io.security.corespringsecurity.domain.Account;
-import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
-import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import io.security.corespringsecurity.service.UserService;
+import io.security.corespringsecurity.test.TestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.MockBeans;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -30,10 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = UserController.class)
-@MockBeans({
-        @MockBean(CustomUsersDetailsService.class),
-        @MockBean(FormWebAuthenticationDetailsSource.class),
-        @MockBean(UserService.class)})//DI 를 위한 MockBean
+@Import(TestConfig.class)
 class UserControllerTest {
     public static final String USER_LOGIN_REGISTER_URL = "user/login/register";
 

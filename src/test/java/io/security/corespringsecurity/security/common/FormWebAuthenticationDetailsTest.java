@@ -1,22 +1,17 @@
 package io.security.corespringsecurity.security.common;
 
-import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
-import io.security.corespringsecurity.service.UserService;
+import io.security.corespringsecurity.test.TestConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.MockBeans;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @WebMvcTest
-@MockBeans({
-        @MockBean(UserService.class),
-        @MockBean(FormWebAuthenticationDetailsSource.class),
-        @MockBean(CustomUsersDetailsService.class)})
+@Import(TestConfig.class)
 public class FormWebAuthenticationDetailsTest {
 
     FormWebAuthenticationDetails formWebAuthenticateDetails;
