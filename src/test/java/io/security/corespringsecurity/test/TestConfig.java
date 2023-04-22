@@ -3,6 +3,7 @@ package io.security.corespringsecurity.test;
 import io.security.corespringsecurity.repository.UserRepository;
 import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.configs.SecurityConfig;
+import io.security.corespringsecurity.security.handler.CustomAuthenticationFailureHandler;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationSuccessHandler;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import io.security.corespringsecurity.service.UserService;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @TestConfiguration
 public class TestConfig {
@@ -19,11 +22,21 @@ public class TestConfig {
 
     @Bean
     public SecurityConfig securityConfig() {
-        return new SecurityConfig(customUsersDetailsService(), formWebAuthenticationDetailsSource(), customAuthenticationSuccessHandler());
+        return new SecurityConfig(
+                customUsersDetailsService(),
+                formWebAuthenticationDetailsSource(),
+                customAuthenticationSuccessHandler(),
+                customAuthenticationFailureHandler()
+        );
     }
 
     @Bean
-    public CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler() {
+    public AuthenticationFailureHandler customAuthenticationFailureHandler() {
+        return new CustomAuthenticationFailureHandler();
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler customAuthenticationSuccessHandler() {
         return new CustomAuthenticationSuccessHandler();
     }
 

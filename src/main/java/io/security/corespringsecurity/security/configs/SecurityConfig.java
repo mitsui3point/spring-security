@@ -1,7 +1,6 @@
 package io.security.corespringsecurity.security.configs;
 
 import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
-import io.security.corespringsecurity.security.handler.CustomAuthenticationSuccessHandler;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +19,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import static io.security.corespringsecurity.constants.RoleConstant.*;
@@ -32,7 +32,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final CustomUsersDetailsService customUsersDetailsService;//DB 에서 유저 정보 조회
     private final FormWebAuthenticationDetailsSource formWebAuthenticationDetailsSource;//WebAuthenticationDetails (추가 세부 인증; ex. secretKey) 생성
-    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;//인증 성공시 실행되는 Handler
+    private final AuthenticationSuccessHandler customAuthenticationSuccessHandler;//인증 성공시 실행되는 Handler
+    private final AuthenticationFailureHandler customAuthenticationFailureHandler;//인증 실패시 실행되는 Handler
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -81,7 +82,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
 
-                .antMatchers(ROOT_URL, USERS_URL, "user/login/**").permitAll()
+                .antMatchers(ROOT_URL, USERS_URL, "user/login/**", "/login").permitAll()
                 .antMatchers(MYPAGE_URL).hasRole(USER_ROLE)
                 .antMatchers(MESSAGES_URL).hasRole(MANAGER_ROLE)
                 .antMatchers(CONFIG_URL).hasRole(ADMIN_ROLE)
@@ -93,9 +94,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()//기본 인증방식; form login
                 .loginPage(LOGIN_URL)//login page
                 .loginProcessingUrl(LOGIN_PROC_URL)//login form action
-                .authenticationDetailsSource(formWebAuthenticationDetailsSource)//WebAuthenticationDetails 소스를 실행하는 실행부
+                .authenticationDetailsSource(formWebAuthenticationDetailsSource)//WebAuthenticationDetails 소스를 생성
                 .defaultSuccessUrl(ROOT_URL)//성공시 redirect page
-                .successHandler(customAuthenticationSuccessHandler)//성공시 실행되는 handler
+                .successHandler(customAuthenticationSuccessHandler)//성공시 호출되는 handler
+                .failureHandler(customAuthenticationFailureHandler)//실패시 호출되는 handler
                 .permitAll()//로그인 페이지 권한 전체 허용
         ;
     }

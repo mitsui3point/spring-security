@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.web.servlet.server.Encoding;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,11 +22,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static io.security.corespringsecurity.constants.TestDataConstants.*;
 import static io.security.corespringsecurity.constants.UrlConstant.LOGIN_PROC_URL;
 import static io.security.corespringsecurity.constants.UrlConstant.ROOT_URL;
+import static java.nio.charset.StandardCharsets.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -101,10 +106,23 @@ public class SecurityConfigTest {
             "/css/base.css", "/css/bootstrap.min.css", "/css/bootstrap-responsive.min.css", "/css/bootstrap-table.css", "/css/style.css",
             "/images/springsecurity.jpg",
             "/js/bootstrap.min.js", "/js/bootstrap-table.js", "/js/jquery-2.1.3.min.js",
+
+            /*
+            HttpSecurity#antMatchers(ROOT_URL, USERS_URL, "user/login/**", "/login").permitAll()
+
+            "/login" 추가: 기존 /login 은 default login 기능에서 queryParam 를 제공하지 않았으나,
+            failureHandler 추가하면서 queryParam 을 추가하고,
+            /login?error=true&exception=... 를 접근 경로로 인식하기 때문에 모두 접근 가능하도록 해야 하므로 추가함.
+            */
+
+            "/login?error=false",
+            "/login?error=true&exception=InsufficientAuthenticationException",
+            "/login?error=true&exception=UsernameNotFoundException",
+            "/login?error=true&exception=invalid password",
     })
     void webIgnoreTest(String url) throws Exception {
         //when
-        mvc.perform(get(url))
+        mvc.perform(get(URLDecoder.decode(url, UTF_8.name())))
                 .andDo(print())
                 //then
                 .andExpect(status().isOk());
