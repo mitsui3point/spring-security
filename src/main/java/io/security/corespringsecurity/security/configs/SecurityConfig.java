@@ -1,6 +1,7 @@
 package io.security.corespringsecurity.security.configs;
 
 import io.security.corespringsecurity.security.common.FormWebAuthenticationDetailsSource;
+import io.security.corespringsecurity.security.handler.CustomAccessDeniedHandler;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import io.security.corespringsecurity.security.service.CustomUsersDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -34,11 +36,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final FormWebAuthenticationDetailsSource formWebAuthenticationDetailsSource;//WebAuthenticationDetails (추가 세부 인증; ex. secretKey) 생성
     private final AuthenticationSuccessHandler customAuthenticationSuccessHandler;//인증 성공시 실행되는 Handler
     private final AuthenticationFailureHandler customAuthenticationFailureHandler;//인증 실패시 실행되는 Handler
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        return new CustomAuthenticationProvider(customUsersDetailsService, passwordEncoder());
-    }
 
     /**
      * 현재 이 웹 서버가 제공하는 http 요청을 접근할 수 있는 user 목록
@@ -82,7 +79,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
 
-                .antMatchers(ROOT_URL, USERS_URL, "user/login/**", "/login").permitAll()
+                .antMatchers(ROOT_URL, USERS_URL, "user/login/**", "/login", "/denied").permitAll()
                 .antMatchers(MYPAGE_URL).hasRole(USER_ROLE)
                 .antMatchers(MESSAGES_URL).hasRole(MANAGER_ROLE)
                 .antMatchers(CONFIG_URL).hasRole(ADMIN_ROLE)
@@ -99,7 +96,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(customAuthenticationSuccessHandler)//성공시 호출되는 handler
                 .failureHandler(customAuthenticationFailureHandler)//실패시 호출되는 handler
                 .permitAll()//로그인 페이지 권한 전체 허용
+
+        .and()
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler())//인가 거부(인증 유저 중 권한을 갖지 못한 유저가 접근시)시 호출되는 handler
         ;
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        CustomAccessDeniedHandler customAccessDeniedHandler = new CustomAccessDeniedHandler();
+        customAccessDeniedHandler.setErrorPage(DENIED_URL);
+        return customAccessDeniedHandler;
     }
 
     /**
@@ -121,5 +129,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        return new CustomAuthenticationProvider(customUsersDetailsService, passwordEncoder());
     }
 }

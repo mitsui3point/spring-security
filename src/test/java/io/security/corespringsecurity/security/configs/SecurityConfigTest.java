@@ -18,6 +18,8 @@ import org.springframework.boot.web.servlet.server.Encoding;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -28,8 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static io.security.corespringsecurity.constants.TestDataConstants.*;
-import static io.security.corespringsecurity.constants.UrlConstant.LOGIN_PROC_URL;
-import static io.security.corespringsecurity.constants.UrlConstant.ROOT_URL;
+import static io.security.corespringsecurity.constants.UrlConstant.*;
 import static java.nio.charset.StandardCharsets.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -37,12 +38,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest
 @ExtendWith(MockitoExtension.class)
@@ -76,7 +77,7 @@ public class SecurityConfigTest {
     }
 
     @Test
-    @DisplayName("등록된 유저들의 /login 페이지 로그인 성공한다.")
+    @DisplayName("등록된 유저의 /login 페이지 로그인 성공한다.")
     void loginTest() throws Exception {
         //given
         given(customUsersDetailsService.loadUserByUsername(account.getUsername())).willReturn(accountContext);
@@ -100,6 +101,77 @@ public class SecurityConfigTest {
         verify(customUsersDetailsService, times(1)).loadUserByUsername(any());
     }
 
+    @Test
+    @DisplayName("등록되지 않은 유저의 /login 페이지 로그인 실패한다.")
+    void loginUserInvalidTest() throws Exception {
+        //given
+        given(customUsersDetailsService.loadUserByUsername(account.getUsername())).willReturn(accountContext);
+        //when
+        mvc.perform(post(LOGIN_PROC_URL)
+                        .with(csrf())
+                        .param("username", "admin")
+                        .param("password", "fail password")
+                        .param("secret_key", "secret")
+                )
+                .andDo(print())
+                //then
+                .andExpect(redirectedUrl("/login?error=true&exception=Invalid Username or Password"))
+                .andExpect(unauthenticated())
+        ;
+        //then
+        verify(customUsersDetailsService, times(1)).loadUserByUsername(any());
+    }
+
+    @Test
+    @DisplayName("secretKey 불일치시 /login 페이지 로그인 실패한다.")
+    void loginKeyInvalidTest() throws Exception {
+        //given
+        given(customUsersDetailsService.loadUserByUsername(account.getUsername())).willReturn(accountContext);
+        //when
+        mvc.perform(post(LOGIN_PROC_URL)
+                        .with(csrf())
+                        .param("username", "admin")
+                        .param("password", RAW_PASSWORD)
+                        .param("secret_key", "ecret")
+                )
+                .andDo(print())
+                //then
+                .andExpect(redirectedUrl("/login?error=true&exception=Invalid Secret Key"))
+                .andExpect(unauthenticated())
+        ;
+        //then
+        verify(customUsersDetailsService, times(1)).loadUserByUsername(any());
+    }
+
+    @Test
+    @DisplayName("권한을 갖고 있는 사용자가 권한이 필요한 페이지 접근을 성공한다.")
+    @WithMockUser(username = "user", roles = "USER")
+    void loginAuthorizedUserTest() throws Exception {
+        //when
+        mvc.perform(get(MYPAGE_URL)
+                        .with(csrf())
+                )
+                .andDo(print())
+                //then
+                .andExpect(status().isOk())
+                .andExpect(view().name("user/mypage"))
+        ;
+    }
+
+    @Test
+    @DisplayName("권한을 갖고 있는 사용자가 권한이 필요한 페이지 접근을 성공한다.")
+    @WithMockUser(username = "user", roles = "USER")
+    void loginUnauthorizedUserTest() throws Exception {
+        //when
+        mvc.perform(get(MESSAGES_URL)
+                        .with(csrf())
+                )
+                .andDo(print())
+                //then
+                .andExpect(redirectedUrl("/denied?exception=Access is denied"))
+        ;
+    }
+
     @ParameterizedTest
     @DisplayName("web static resources 접근시에는 spring security 를 적용하지 않도록 한다.")
     @ValueSource(strings = {
@@ -119,6 +191,8 @@ public class SecurityConfigTest {
             "/login?error=true&exception=InsufficientAuthenticationException",
             "/login?error=true&exception=UsernameNotFoundException",
             "/login?error=true&exception=invalid password",
+
+            "/denied"
     })
     void webIgnoreTest(String url) throws Exception {
         //when
