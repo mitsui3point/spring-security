@@ -91,7 +91,7 @@ public class CustomAuthenticationProviderTest {
         Authentication authenticate = authenticationProvider.authenticate(authentication);
 
         //then
-        assertThat(authenticate.getPrincipal()).isEqualTo(accountContext);
+        assertThat(authenticate.getPrincipal()).isEqualTo(accountContext.getAccount());
         assertThat(authenticate.getCredentials()).isNull();
         assertThat(authenticate.getAuthorities().containsAll(accountContext.getAuthorities())).isTrue();
         verify(customUsersDetailsService, times(1)).loadUserByUsername(any());

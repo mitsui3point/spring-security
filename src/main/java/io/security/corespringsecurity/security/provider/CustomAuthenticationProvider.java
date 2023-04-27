@@ -62,7 +62,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         }
 
         return new UsernamePasswordAuthenticationToken(
-                accountContext,
+                accountContext.getAccount(),
                 null,
                 accountContext.getAuthorities());
     }

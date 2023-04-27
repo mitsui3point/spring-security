@@ -93,8 +93,7 @@ public class SecurityConfigTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(ROOT_URL))
                 .andExpect(authenticated()
-                        .withUsername("admin")
-                        .withAuthenticationPrincipal(accountContext)
+                        .withAuthenticationPrincipal(accountContext.getAccount())
                 )
         ;
         //then

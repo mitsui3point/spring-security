@@ -54,14 +54,6 @@ public class LoginControllerTest {
     @Mock
     Authentication authentication;
 
-    @BeforeEach
-    void setUp() {
-//        mvc = MockMvcBuilders.webAppContextSetup(context)
-//                .apply(springSecurity())
-//                .build();
-        MockitoAnnotations.initMocks(this);
-    }
-
     @Test
     @WithAnonymousUser
     @DisplayName("직접 커스터마이징한 로그인 페이지를 노출한다.")

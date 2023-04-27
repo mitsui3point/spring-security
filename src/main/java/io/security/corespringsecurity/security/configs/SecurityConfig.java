@@ -88,7 +88,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
 
         .and()
-                .formLogin()//기본 인증방식; form login
+                .formLogin()//기본 인증방식; form login; UsernamePasswordAuthenticationFilter 를 기본설정한다. API 는 별도로 구현클래스를 따로 스프링 빈으로 등록해주어야 한다
                 .loginPage(LOGIN_URL)//login page
                 .loginProcessingUrl(LOGIN_PROC_URL)//login form action
                 .authenticationDetailsSource(formWebAuthenticationDetailsSource)//WebAuthenticationDetails 소스를 생성
